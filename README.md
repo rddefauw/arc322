@@ -34,9 +34,9 @@ source ~/.bashrc
 
 ### Basic
 
-* **[Lab 1: Create and run a skeleton Apache Camel java project](/labs/lab-1.md)** - In this Lab we will explore how to start a new Camel Java project and run it. 
-* **[Lab 2: Integrate Broker endpoints and test](/labs/lab-2.md)** - In this Lab we will explore how to add broker endpoints, send/receive messages to get familiar with Java DSL.
-* **[Lab 3: Implement our sample use case](/labs/lab-3.md)** - First two labs covered the fundamental pieces of knowledge we need. Lets dive in and implement the use case.
+* **[Lab 1: Create and run a skeleton Apache Camel java project](/labs/lab-1/lab-1.md)** - In this Lab we will explore how to start a new Camel Java project and run it. 
+* **[Lab 2: Integrate Broker endpoints and test](/labs/lab-2/lab-2.md)** - In this Lab we will explore how to add broker endpoints, send/receive messages to get familiar with Java DSL.
+* **[Lab 3: Implement our sample use case](/labs/lab-3/lab-3.md)** - First two labs covered the fundamental pieces of knowledge we need. Lets dive in and implement the use case.
 
 ### Advanced
 
