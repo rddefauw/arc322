@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Configures the Camel Context-->
+
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="
+       http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://camel.apache.org/schema/spring http://camel.apache.org/schema/spring/camel-spring.xsd">
+ 
+  <bean id="jasypt" class="org.apache.camel.component.jasypt.JasyptPropertiesParser">
+      <property name="password" value="sysenv:CAMEL_MASTER_PASSWORD"/>
+  </bean>
+
+  <bean id="bridgePropertyPlaceholder" class="org.apache.camel.spring.spi.BridgePropertyPlaceholderConfigurer">
+    <property name="location" value="classpath:secrets.properties"/>
+    <property name="parser" ref="jasypt"/>
+  </bean>
+ 
+  <bean id="activeMQConnectionFactory" class="org.apache.activemq.ActiveMQConnectionFactory">
+    <property name="brokerURL" value="${broker.brokerURL}"/>
+    <property name="userName" value="${broker.username}"/>
+    <property name="password" value="${broker.password}"/>
+  </bean>
+   
+  <bean id="pooledConnectionFactory" class="org.apache.activemq.pool.PooledConnectionFactory"
+  init-method="start" destroy-method="stop">
+    <property name="maxConnections" value="10" />
+    <property name="maximumActiveSessionPerConnection" value="20" />
+    <property name="blockIfSessionPoolIsFull" value="true" />
+    <property name="createConnectionOnStartup" value="true" />
+    <property name="idleTimeout" value="50" />
+    <property name="connectionFactory" ref="activeMQConnectionFactory" />
+  </bean>
+   
+  <bean id="jmsConfiguration" class="org.apache.camel.component.jms.JmsConfiguration">
+    <property name="connectionFactory" ref="pooledConnectionFactory"/>
+    <property name="concurrentConsumers" value="5"/>
+    <property name="maxConcurrentConsumers" value="10"/>
+  </bean>
+   
+  <bean id="activemq2" class="org.apache.activemq.camel.component.ActiveMQComponent">
+    <property name="configuration" ref="jmsConfiguration"/>
+  </bean>
+  
+  <!-- define the activemq component -->
+  <bean id="activemq" class="org.apache.activemq.camel.component.ActiveMQComponent">
+    <property name="connectionFactory">
+      <bean class="org.apache.activemq.ActiveMQConnectionFactory">
+        <property name="brokerURL" value="${broker.brokerURL}"/>
+        <property name="userName" value="${broker.username}"/>
+        <property name="password" value="${broker.password}"/>
+      </bean>
+    </property>
+  </bean>
+
+	<!-- Configure IBM WebSphere MQ connection factory -->
+	<bean id="ibmmqConnectionFactory" class="com.ibm.mq.jms.MQConnectionFactory">
+		<property name="transportType" value="1" />
+		<property name="hostName" value="${ibmmq.host}" />
+		<property name="port" value="${ibmmq.port}" />
+		<property name="queueManager" value="${ibmmq.qmname}" />
+	</bean>
+
+	<bean id="ibmmqConfig" class="org.apache.camel.component.jms.JmsConfiguration">
+		<property name="connectionFactory" ref="ibmmqConnectionFactory" />
+		<property name="concurrentConsumers" value="10" />
+	</bean>
+
+	<bean id="ibmmq" class="org.apache.camel.component.jms.JmsComponent">
+		<property name="configuration" ref="ibmmqConfig" />
+	</bean>
+
+  <bean id="tibco" class="org.apache.camel.component.jms.JmsComponent">
+    <property name="connectionFactory">
+      <bean class="com.tibco.tibjms.TibjmsConnectionFactory">
+        <property name="serverUrl" value="${tibco.server.url}"/>
+      </bean>
+    </property>
+  </bean>
+  
+  <bean id="awsRegion" class="org.springframework.beans.factory.config.MethodInvokingFactoryBean">
+      <property name="targetClass" value="com.amazonaws.regions.RegionUtils"/>
+      <property name="targetMethod" value="getRegion"/>
+      <property name="arguments">
+          <list>
+              <value>${aws.region}</value>
+          </list>
+      </property>
+  </bean>
+    
+  <bean name="sqsClient" class="com.amazonaws.services.sqs.AmazonSQSAsyncClient">
+    <constructor-arg>
+        <bean class="com.amazonaws.auth.BasicAWSCredentials">
+            <constructor-arg value="${access.key}"/>
+            <constructor-arg value="${secret.key}"/>
+        </bean>
+    </constructor-arg>
+    <property name="region" ref="awsRegion"/>
+  </bean>  
+  
+  <camelContext xmlns="http://camel.apache.org/schema/spring">
+    <!-- here is a sample which processes the input files
+         (leaving them in place - see the 'noop' flag)
+         then performs content based routing on the message using XPath -->
+         
+    <endpoint id="camel1" uri="activemq:queue:CAMEL.1"/>    
+    <endpoint id="camel2" uri="activemq:queue:CAMEL.2"/>    
+
+    <endpoint id="camel1pool" uri="activemq2:queue:CAMEL.1"/>    
+    <endpoint id="camel2pool" uri="activemq2:queue:CAMEL.2"/>   
+    
+    <endpoint id="tibco1" uri="tibco:queue:amq.to.ems"/>    
+    <endpoint id="tibco2" uri="tibco:queue:ems.to.amq"/>  
+    
+    <endpoint id="sqs1" uri="aws-sqs://sqs1?amazonSQSClient=#sqsClient"/>
+    
+    <route>
+      <from uri="camel1"/>
+      <to uri="camel2"/>
+    </route>
+
+    <route>
+      <from uri="activemq:topic:ActiveMQ.Advisory.MessageConsumed.Queue.CAMEL.1?mapJmsMessage=false"/>
+      <marshal><json prettyPrint="true"></json></marshal>
+      <to uri="log:com.example?showAll=true&amp;multiline=true" />
+    </route>
+    
+    <!---
+    <route>
+      <from uri="activemq:topic:ActiveMQ.Advisory.MessageConsumed.Queue.CAMEL.1?mapJmsMessage=false"/>
+      <marshal><json></json></marshal>
+      <convertBodyTo type="java.lang.String"/>
+      <to uri="log:com.example?showAll=true&amp;multiline=true" />
+    </route>    
+    <route>
+      <from uri="camel2pool"/>
+      <to uri="camel1pool"/>
+    </route>
+    
+    <route>
+      <from uri="camel2pool"/>
+      <removeHeaders pattern="JMS*"/>
+      <to uri="ibmmq:queue:AMQ_TO_IBMMQ"/>
+    </route>    
+
+    <route>
+      <from uri="camel1"/>
+      <to uri="tibco1"/>
+    </route>
+    
+    <route>
+      <from uri="tibco1"/>
+      <removeHeaders pattern="JMS*"/>
+      <to uri="sqs1"/>
+    </route>
+      --> 
+  </camelContext>
+
+</beans>

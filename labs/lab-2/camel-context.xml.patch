@@ -1,0 +1,17 @@
+8a9,19
+>   
+>       <!-- define the activemq component -->
+>       <bean id="activemq" class="org.apache.activemq.camel.component.ActiveMQComponent">
+>         <property name="connectionFactory">
+>           <bean class="org.apache.activemq.ActiveMQConnectionFactory">
+>             <property name="brokerURL" value="failover:(ssl://b-590425c9-1a73-43b0-ac7b-03bb58ecd8c1-1.mq.us-east-1.amazonaws.com:61617,ssl://b-590425c9-1a73-43b0-ac7b-03bb58ecd8c1-2.mq.us-east-1.amazonaws.com:61617)"/>
+>             <property name="userName" value="aws" />
+>             <property name="password" value="mq1234567890" />
+>           </bean>
+>         </property>
+>       </bean>
+13a25,28
+>     <route>
+>       <from uri="activemq:queue:CAMEL.1"/>
+>       <to uri="activemq:queue:CAMEL.2"/>
+>     </route>
