@@ -2,7 +2,9 @@
 
 ## Prerequisites
 
-You must have completed Lab-2 successfully. Each lab builds on the previous lab. 
+You must have completed Lab 2 successfully. Each lab builds on the previous lab. 
+
+In your Cloud 9 IDE:
 
 ```
 cd ~/environment/arc322/router
@@ -10,7 +12,7 @@ cd ~/environment/arc322/router
 
 ## What are we doing?
 
-In the previous lab, you might have noticed we had put broker password in plain text. Obviously, this is not a good security practice. In this lab, we will be using another Camel component to encrypt the passwords, AWS accessKeyId and secretKey. 
+In the previous lab, you might have noticed we had put the broker password in plain text. Obviously, this is not a good security practice. In this lab, we will be using another Camel component to encrypt the passwords and AWS credentials.
 
 ## Add dependencies
 
@@ -65,4 +67,4 @@ The last 7 line of the output from second command above is shown below
  
 ```
 
-That's it!!! for Lab 3. Congratulations on completing Lab 3. Now you can start the Lab 4.
+That's it for Lab 3. Now you can start Lab 4.

@@ -1,16 +1,18 @@
-# Lab 2: Integrate AmazonMQ 
+# Lab 2: Integrate Amazon MQ 
 
 ## Prerequisites
 
-You must have completed Lab1 successfully. Each lab builds on the previous lab. 
+You must have completed Lab 1 successfully. Each lab builds on the previous lab. 
+
+Switch to the `router` directory in your Cloud 9 IDE.
 
 ```
-cd ~/environment/arc322/router
+cd ~/environment/amazon-mq-workshop/router
 ```
 
 ## What are we doing?
 
-In this lab, we will be integrating AmazonMQ queues to our skeleton project. First we will add necessary dependencies to our project and then we will configure a route that just copies messages from one queue to another.
+In this lab, we will be integrating Amazon MQ queues to our skeleton project. First we will add necessary dependencies to our project and then we will configure a route that just copies messages from one queue to another.
 
 ## Add dependencies
 
@@ -95,4 +97,4 @@ The last 7 line of the output from second command above is shown below
  INFO | UK message
 ```
 
-That's it!!! for Lab 2. Congratulations on completing Lab 2. Now you can start the Lab 3.
+That's it for Lab 2. Now you can start Lab 3.
