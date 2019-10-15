@@ -27,6 +27,11 @@ Our project depends on various java libraries to run. These dependencies are man
         <artifactId>activemq-all</artifactId>
         <version>5.15.9</version>
     </dependency> 
+    <dependency>
+        <groupId>org.apache.camel</groupId>
+        <artifactId>camel-jasypt</artifactId>
+        <version>2.24.2</version>
+    </dependency>    
 ```
 
 ## Add ActiveMQ bean
@@ -34,16 +39,28 @@ Our project depends on various java libraries to run. These dependencies are man
 Add the following lines to ```router/src/main/resources/META-INF/spring/camel-context.xml``` under ```<beans>``` 
 
 ```
-      <!-- define the activemq component -->
-      <bean id="activemq" class="org.apache.activemq.camel.component.ActiveMQComponent">
+        <!-- define the activemq component -->
+        <bean id="activemq" class="org.apache.activemq.camel.component.ActiveMQComponent">
         <property name="connectionFactory">
           <bean class="org.apache.activemq.ActiveMQConnectionFactory">
-            <property name="brokerURL" value="failover:(ssl://b-590425c9-1a73-43b0-ac7b-03bb58ecd8c1-1.mq.us-east-1.amazonaws.com:61617,ssl://b-590425c9-1a73-43b0-ac7b-03bb58ecd8c1-2.mq.us-east-1.amazonaws.com:61617)"/>
-            <property name="userName" value="aws" />
-            <property name="password" value="mq1234567890" />
+            <property name="brokerURL" value="${broker.brokerURL}"/>
+            <property name="userName" value="${broker.username}"/>
+            <property name="password" value="${broker.password}"/>
           </bean>
         </property>
-      </bean>
+        </bean>
+        <!-- define the jasypt properties parser with the given password to be used -->
+        <bean id="jasypt" class="org.apache.camel.component.jasypt.JasyptPropertiesParser">
+            <property name="password" value="sysenv.CAMEL_MASTER_PASSWORD"/>
+        </bean>
+        
+        <!-- define the camel properties component -->
+        <bean id="properties" class="org.apache.camel.component.properties.PropertiesComponent">
+            <!-- the properties file is in the classpath -->
+            <property name="location" value="classpath:secrets.properties"/>
+            <!-- and let it leverage the jasypt parser -->
+            <property name="propertiesParser" ref="jasypt"/>
+        </bean>      
 ```
 
 ## Add a new route that uses the bean above
